@@ -2,5 +2,4 @@ This software is proprietary and copyrighted by jso-w.
 
 Redistribution, modification, or reverse engineering of this software is prohibited without explicit permission.
 
-This software includes Tesseract-OCR, which is licensed under the Apache License 2.0.
-A copy of the Tesseract-OCR license is included in the `3rd-party-licenses` directory.
+This software includes third party software, a copy of each license is available in the "3rd-party-license" folder.
