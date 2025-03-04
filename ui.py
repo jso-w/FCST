@@ -1,12 +1,19 @@
 import sys
 import cv2
-from PySide6.QtWidgets import QApplication, QFileDialog
+from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QPushButton
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
-class MainUI:
+class MainUI(QMainWindow):
     def __init__(self):
-        self.app = QApplication(sys.argv)
+        super().__init__()
+        self.setWindowTitle("FCST - CCTV Scanning Tool")
+        self.setGeometry(400,400,600,600)
+        self.fs_button = QPushButton("Choose video file.", parent = self)
+        self.fs_button.setGeometry(200, 200, 50, 50)
 
-    video_path = QFileDialog.getOpenFileName()
-
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_ui = MainUI()
+    main_ui.show()
+    sys.exit(app.exec())
