@@ -15,6 +15,8 @@ class VideoProcessor:
         self.fps = self.vid.get(cv2.CAP_PROP_FPS)
         self.first_frame = self.get_first_frame()
 
+        self.text_array = []
+
     def get_video(self):
         return self.vid
 
@@ -38,12 +40,12 @@ class VideoProcessor:
             if not check:
                 break
             frame_roi = frame[roi]
-            cv2.cvtColor(frame_roi)
-            cv2.resize(frame_roi, None, fx = 2, fy = 2, interpolation=(cv2.INTER_LINEAR))
-            cv2.threshold(frame_roi, 150, 255, cv2.THRESH_BINARY)
+            frame_roi = cv2.cvtColor(frame_roi, cv2.COLOR_BGR2GRAY)
+            frame_roi = cv2.resize(frame_roi, None, fx = 4, fy = 4, interpolation=(cv2.INTER_LINEAR))
+            _, frame_roi = cv2.threshold(frame_roi, 150, 255, cv2.THRESH_BINARY)
 
             frame_text = pytesseract.image_to_string(frame_roi, config="--psm 6")
 
             if frame_text.strip():
                 timecode = str(timedelta(seconds = frame_count / self.fps))
-                frame_output.append({"Time": timecode, })
+                self.text_array.append(frame_text)
