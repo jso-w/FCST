@@ -1,9 +1,16 @@
-import pytesseract
-import cv2
-import video_processor
+from datetime import datetime
 
-def ocr_frame(frame_roi):
-    frame_text = pytesseract.image_to_string(frame_roi, config='--psm 6')
-    return frame_text
+def text_array_to_file(text_array):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = "OCRScan_" + f"{timestamp}"
 
-print(cv2.getBuildInformation())
+    with open(output_file, "w") as output:
+        output.write("OCR Scan results \n \n \n")
+        for frame_text, frame_i in len(text_array):
+            output.write(f"Frame: {frame_i}")
+            output.write("\n----------------------------------\n")
+            output.write(f"{frame_text}")
+            output.write("----------------------------------")
+            output.write("\n")        
+    
+    return output_file

@@ -1,8 +1,9 @@
-#Processes the video file & stores data
 
+import os
 import cv2
 import pytesseract
 from datetime import timedelta
+import pandas as pd
 
 class VideoProcessor:
 
@@ -14,6 +15,8 @@ class VideoProcessor:
         self.frames_total = self.vid.get(cv2.CAP_PROP_FRAME_COUNT)
         self.fps = self.vid.get(cv2.CAP_PROP_FPS)
         self.first_frame = self.get_first_frame()
+        self.size = os.path.getsize(self.video_path)
+        self.duration = timedelta(seconds = (self.frames_total/self.fps))
 
         self.text_array = []
 
@@ -28,24 +31,33 @@ class VideoProcessor:
             self.vid.release()
 
     def get_first_frame(self):
-        ret, frame = self.vid.cv2.read()
-        if not ret:
+        self.vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        _, frame = self.vid.read()
+        if not _:
             return False
         return frame
     
     def run_scan(self, frame_skip, roi):
-        frame_count = 0
+
+        frame_i = 0
         while(self.vid.isOpened()):
+            self.vid.set(cv2.CAP_PROP_POS_FRAMES, frame_i)
             check, frame = self.vid.read()
+
             if not check:
                 break
+
             frame_roi = frame[roi]
-            frame_roi = cv2.cvtColor(frame_roi, cv2.COLOR_BGR2GRAY)
-            frame_roi = cv2.resize(frame_roi, None, fx = 4, fy = 4, interpolation=(cv2.INTER_LINEAR))
-            _, frame_roi = cv2.threshold(frame_roi, 150, 255, cv2.THRESH_BINARY)
+            frame_gray = cv2.cvtColor(frame_roi, cv2.COLOR_BGR2GRAY)
+            frame_resized = cv2.resize(frame_gray, None, fx = 4, fy = 4, interpolation=(cv2.INTER_LINEAR))
+            _, frame_proc = cv2.threshold(frame_resized, 150, 255, cv2.THRESH_BINARY)
+            frame_text = pytesseract.image_to_string(frame_proc, config="--psm 6")
 
-            frame_text = pytesseract.image_to_string(frame_roi, config="--psm 6")
+            if frame_text:
+                timecode = str(timedelta(seconds = frame_i / self.fps))
+                self.text_array.append((frame_text, frame_i))
 
-            if frame_text.strip():
-                timecode = str(timedelta(seconds = frame_count / self.fps))
-                self.text_array.append(frame_text)
+            frame_i += frame_skip
+    
+    def get_text(self):
+        return self.text_array
