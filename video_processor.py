@@ -6,7 +6,7 @@ from datetime import timedelta
 import pandas as pd
 
 class VideoProcessor:
-
+    
     def __init__(self, video_path):
         self.video_path = video_path
         self.vid = cv2.VideoCapture(self.video_path)
