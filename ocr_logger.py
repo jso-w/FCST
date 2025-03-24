@@ -14,3 +14,11 @@ def text_array_to_file(text_array):
             output.write("\n")        
     
     return output_file
+
+#logic to add/would be great to have:
+#-keyword detector (specific ships or names)
+#-"simplified" output that only shows when a next
+# frame is different than current frame (changes)
+#-various graphing / visual ideas to illustrate
+# CCTV data and make it readable at one glance
+#-train model 

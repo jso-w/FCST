@@ -1,22 +1,34 @@
 import sys
 import os
+from datetime import timedelta
+
+import cv2
 from PySide6.QtGui import QImage, QPixmap, QPainter, QPen, QIcon
 from PySide6.QtCore import Qt, QRect, QEvent, QObject, Signal, QThread
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidget, QMessageBox, QHBoxLayout
 from PySide6.QtUiTools import QUiLoader
-from datetime import timedelta
+
 from video_processor import VideoProcessor
 import ocr_logger
-import cv2
+
+    #TODO
+    #-menubar elements
+    #-test with non-transparent windows in eve client
+    #-redo the entire thing but apply state management practices and declarative functions
+    # instead of the currently used imperative jank trash (MVVM + state driven UI)
+    #-clear loaded video / update_state helper methods
 
 class MainUI:
     def __init__(self):
         self.selected_roi = None
         self.file_path = None
-        self.vp = None
-        loader = QUiLoader()
-        self.ui = loader.load("mainwindow.ui")
 
+        loader = QUiLoader()
+        self.ui = loader.load("mainwindow.ui") #mainUI class loads mainwindow.ui as self
+
+
+
+        #connect UI elements to actions/slots
         self.ui.load_video.clicked.connect(self.open_file_browser)
         self.ui.set_roi.clicked.connect(self.set_roi)
         self.ui.full_frame.stateChanged.connect(self.update_button)
@@ -25,28 +37,27 @@ class MainUI:
         self.ui.actionHelp.triggered.connect(self.show_help_message)
 
     def open_file_browser(self):
-
         self.file_path, _ = QFileDialog.getOpenFileName(
             self.ui,
             "Select a Video File",
             "",
-            "Video Files (*.mp4 *.avi *.mkv *.mov *.flv *.wmv *.webm)"
+            "Video Files (*.mp4 *.avi *.mkv *.mov)" #TODO: add all supported extensions (ffmpeg/cv)
         )
-        if self.file_path:
-            self.vp = VideoProcessor(self.file_path)
-            self.vid = cv2.VideoCapture(self.file_path)
 
-            self.frames_total = self.vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        if self.file_path:
+            self.vp = VideoProcessor(self.file_path) 
+            self.vid = cv2.VideoCapture(self.file_path) 
+            self.frames_total = self.vid.get(cv2.CAP_PROP_FRAME_COUNT) 
             self.fps = self.vid.get(cv2.CAP_PROP_FPS)
             _, self.first_frame = self.vid.read()
             self.size = os.path.getsize(self.file_path)
-            self.duration = timedelta(seconds = (self.frames_total/self.fps))
+            self.duration = timedelta(seconds = (self.frames_total/self.fps)) 
 
             self.ui.label_filename_dyn.setText(str(os.path.join(os.path.basename(os.path.dirname(self.file_path)),
                                                      os.path.basename(self.file_path))))
             self.ui.label_fps_dyn.setText(str(self.fps))
-            self.ui.label_size_dyn.setText(str(round(os.path.getsize(self.file_path)/(1024*1024), 2)) + " MB")
-            self.ui.label_duration_dyn.setText(str(self.duration)[:-4])
+            self.ui.label_size_dyn.setText(f"{self.size / (1024 * 1024):.2f} MB")
+            self.ui.label_duration_dyn.setText(str(self.duration)[:-4]) #wtf am i even doing
             self.ui.set_roi.setEnabled(True)
             self.ui.full_frame.setEnabled(True)
 
@@ -55,10 +66,13 @@ class MainUI:
             return
 
         if self.first_frame is None:
-            QMessageBox.warning(self.ui, "No frame", "Couldn't load video file.")
+            QMessageBox.warning(self.ui, "No frame", "Couldn't load video file.") #placeholder, should never happen
             return
 
-        self.scale_factor = 0.75
+        self.scale_factor = 0.75 
+        #TODO: possibly add logic to let user resize window and scale the scale factor accordingly
+        #(unsure if useful)
+
         frame_resized = cv2.resize(
             self.vp.first_frame, None, fx=self.scale_factor, fy=self.scale_factor, interpolation=cv2.INTER_LINEAR
         )
@@ -68,23 +82,20 @@ class MainUI:
         bytes_per_line = channel * width
         q_img = QImage(frame_rgb.data, width, height, bytes_per_line, QImage.Format_RGB888)
 
-        # Set up the ROI window
+        #instantiate ROI selection window and display first frame to draw ROI
         self.roi_window = QWidget()
         self.roi_window.setWindowTitle("Select ROI")
-
-        # Properly set up layout
         layout = QVBoxLayout(self.roi_window)  
         self.roi_window.setLayout(layout)      
 
-        # Initialize QLabel with the pixmap
         self.label = QLabel()
         pixmap = QPixmap.fromImage(q_img)
         self.label.setPixmap(pixmap)
         layout.addWidget(self.label)
 
         buttons_layout = QHBoxLayout()
-        confirm_button = QPushButton("Confirm")
-        cancel_button = QPushButton("Cancel")
+        confirm_button = QPushButton("Confirm") #TODO: replace with better solution
+        cancel_button = QPushButton("Cancel") 
         buttons_layout.addWidget(confirm_button)
         buttons_layout.addWidget(cancel_button)
         layout.addLayout(buttons_layout)
@@ -92,12 +103,10 @@ class MainUI:
         confirm_button.clicked.connect(self.confirm_roi)
         cancel_button.clicked.connect(self.cancel_roi)
 
-        # Properly initialize ROI selector and connect signals
         self.roi_selector = ROISelector(self.label, self.scale_factor, pixmap.width(), pixmap.height())
         self.roi_selector.roi_selected.connect(self.on_roi_selected)
         self.label.installEventFilter(self.roi_selector)
 
-        # Ensure window is correctly sized
         self.roi_window.resize(pixmap.width(), pixmap.height())
         self.roi_window.show()
 
@@ -111,7 +120,7 @@ class MainUI:
             QMessageBox.information(self.roi_window, "ROI Selected", f"ROI Successfully selected.")
             self.roi_window.close()
         else:
-            QMessageBox.warning(self.roi_window, "No ROI", "Please select a ROI first.")
+            QMessageBox.warning(self.roi_window, "No ROI", "Please draw your ROI on the frame.")
         self.update_start_button_state()
 
     def cancel_roi(self):
@@ -134,7 +143,7 @@ class MainUI:
         frame_skip = self.ui.set_frame_skip.value()
         roi = self.selected_roi if not self.ui.full_frame.isChecked() else (slice(None), slice(None))
 
-        self.worker = WorkerThread(self.file_path, frame_skip, roi)
+        self.worker = WorkerThread(self.file_path, frame_skip, roi) 
         self.worker.ocr_signal.connect(self.scan_signal_handler)
         self.worker.progress_signal.connect(self.ui.scan_progress_bar.setValue)
         self.worker.start()
@@ -144,7 +153,6 @@ class MainUI:
         self.ui.scan_progress_bar.setValue(100)
         QMessageBox.information(self.ui, "Scan Complete", f"Scan results saved to {self.output_final}")
         self.ui.scan_progress_bar.setValue(0)
-        QApplication.restoreOverrideCursor()
         self.set_main_widgets(True)
 
     def set_main_widgets(self, enabled: bool):
@@ -177,7 +185,7 @@ class ROISelector(QObject):
         self.base_pixmap = self.label.pixmap().copy()
         self.temp_pixmap = self.base_pixmap.copy()
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj, event): #DO NOT RENAME
         if obj == self.label:
             if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
                 self.start_point = event.pos()
@@ -230,7 +238,7 @@ class ROISelector(QObject):
             y1 = int(rect.top() / self.scale_factor)
             x2 = int(rect.right() / self.scale_factor)
             y2 = int(rect.bottom() / self.scale_factor)
-            return (slice(y1, y2), slice(x1, x2))
+            return (slice(y1, y2), slice(x1, x2)) 
         return None
 
 class WorkerThread(QThread):
@@ -250,7 +258,8 @@ class WorkerThread(QThread):
         self.ocr_signal.emit(self.ocr_list)
 
 
-app = QApplication(sys.argv)
-window = MainUI()
-window.ui.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainUI()
+    window.ui.show()
+    sys.exit(app.exec())
