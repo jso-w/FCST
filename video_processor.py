@@ -5,6 +5,8 @@ import pytesseract
 from datetime import timedelta
 import pandas as pd
 
+pytesseract.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(__file__), 'Tesseract-OCR', 'tesseract.exe')
+
 class VideoProcessor:
     
     def __init__(self, video_path):
@@ -37,8 +39,8 @@ class VideoProcessor:
             return False
         return frame
     
-    def run_scan(self, frame_skip, roi):
-
+    def run_scan(self, frame_skip, roi, progress_callback):
+        
         frame_i = 0
         while(self.vid.isOpened()):
             self.vid.set(cv2.CAP_PROP_POS_FRAMES, frame_i)
@@ -52,12 +54,16 @@ class VideoProcessor:
             frame_resized = cv2.resize(frame_gray, None, fx = 4, fy = 4, interpolation=(cv2.INTER_LINEAR))
             _, frame_proc = cv2.threshold(frame_resized, 150, 255, cv2.THRESH_BINARY)
             frame_text = pytesseract.image_to_string(frame_proc, config="--psm 6")
+            
+            if progress_callback:
+                progress_callback(int((frame_i / self.frames_total) * 100))
 
             if frame_text:
                 timecode = str(timedelta(seconds = frame_i / self.fps))
                 self.text_array.append((frame_text, frame_i))
 
             frame_i += frame_skip
+        self.release_video()
     
     def get_text(self):
         return self.text_array
