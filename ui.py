@@ -1,6 +1,6 @@
 import sys
 import os
-from PySide6.QtGui import QImage, QPixmap, QPainter, QPen
+from PySide6.QtGui import QImage, QPixmap, QPainter, QPen, QIcon
 from PySide6.QtCore import Qt, QRect, QEvent, QObject, Signal, QThread
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidget, QMessageBox, QHBoxLayout
 from PySide6.QtUiTools import QUiLoader
@@ -23,7 +23,6 @@ class MainUI:
         self.ui.start_scan.setEnabled(False)
         self.ui.start_scan.clicked.connect(self.start_scan)
         self.ui.actionHelp.triggered.connect(self.show_help_message)
-        
 
     def open_file_browser(self):
 
