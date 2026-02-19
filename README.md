@@ -3,6 +3,7 @@
 FCST is a specialized video-to-text utility designed to automate text extraction from screen recordings. By isolating a specific region of interest, it minimizes noise and maximizes OCR accuracy across a sequence of frames.
 
 ---
+# WORK IN PROGRESS
 
 ## Features
 
