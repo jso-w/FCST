@@ -1,6 +1,6 @@
 # FCST (Frank's CCTV Scanning Tool)
 
-FCST is a specialized video-to-text utility designed to automate text extraction from screen recordings. By isolating a specific region of interest, it minimizes noise and maximizes OCR accuracy across a sequence of frames.
+FCST is a video-to-text utility designed to automate text extraction from screen recordings.
 
 ---
 # WORK IN PROGRESS
@@ -17,7 +17,7 @@ FCST is a specialized video-to-text utility designed to automate text extraction
 
 ## Project Status: Work in Progress
 
-This is a **personal project** currently under active development. It was originally conceived to parse logs and UI data from a specific PC game to assist with external stat tracking.
+This is a **personal project** currently under active development.
 
 > [!IMPORTANT]
 > **Usage Note:** Detailed user documentation and "Basic Usage" instructions are currently omitted
@@ -43,5 +43,3 @@ This is a **personal project** currently under active development. It was origin
 * [ ] Implement image pre-processing (grayscale/thresholding) to improve OCR hit rates imperfect or low-res frames.
 
 ---
-
-> **Note:** This tool is intended for personal use and research. The Program name is a reference to an online handle. Ensure you have the right to process the video content you use with this application.
