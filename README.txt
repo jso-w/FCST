@@ -43,4 +43,4 @@ This is a **personal project** currently under active development. It was origin
 
 ---
 
-> **Note:** This tool is intended for personal use and research. Ensure you have the right to process the video content you use with this application.
+> **Note:** This tool is intended for personal use and research. The Program name is a reference to an online handle. Ensure you have the right to process the video content you use with this application.
