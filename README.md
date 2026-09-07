@@ -1,4 +1,4 @@
-# FCST (Frank's CCTV Scanning Tool)
+# FCST
 
 FCST is a video-to-text utility designed to automate text extraction from screen recordings.
 
