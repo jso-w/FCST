@@ -32,7 +32,7 @@ This is a **personal project** currently under active development.
 ## Prerequisites
 
 * **Python 3.x**
-* **Self-Contained:** All major dependencies and the Tesseract engine are bundled within the project repository for a "plug-and-play" experience.
+* **Self-Contained:** All major dependencies and the Tesseract engine are bundled within the project repository 
 
 ---
 
